@@ -1,0 +1,22 @@
+schema: spec-driven
+
+# Project context
+# This is shown to AI when creating artifacts.
+context: |
+  Project: Bluetooth testing and command-line utility (bluetooth-test)
+  Tech Stack: Python, bleak (Bluetooth Low Energy platform-agnostic library)
+  Conventions:
+    - We use Conventional Commits (e.g., feat:, fix:)
+    - We follow a spec-driven development process where all changes must have matching specs and tasks
+    - We enforce code formatting/linting rules (ESLint, Prettier, and standard Python formatters)
+  Language Requirement:
+    - CRITICAL: All future generated OpenSpec artifacts (including proposals, tasks, and specs) MUST be written in Traditional Chinese (zh-TW).
+
+# Per-artifact rules
+rules:
+  proposal:
+    - "Must be written in Traditional Chinese (zh-TW) / 所有提案必須以繁體中文 (zh-TW) 撰寫"
+  tasks:
+    - "Must be written in Traditional Chinese (zh-TW) / 所有任務必須以繁體中文 (zh-TW) 撰寫"
+  specs:
+    - "Must be written in Traditional Chinese (zh-TW) / 所有規格說明書必須以繁體中文 (zh-TW) 撰寫"

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bluetooth Tester</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Bluetooth Tester</h1>
+            <div class="status-indicator" id="connectionStatus">
+                <span class="dot disconnected"></span>
+                <span class="text">未連線</span>
+            </div>
+        </header>
+
+        <main>
+            <!-- 左側：掃描與連線設定 -->
+            <section class="panel left-panel">
+                <div class="card">
+                    <h2>過濾與掃描</h2>
+                    <div class="input-group">
+                        <label for="filterInput">過濾條件 (Name 或 Address/UUID)</label>
+                        <input type="text" id="filterInput" placeholder="例如: MyDevice 或 38A8D5F6...">
+                    </div>
+                    <div class="action-buttons" style="align-items: center; justify-content: space-between; margin-top: 0;">
+                        <button id="scanBtn" class="btn primary" style="flex: unset; width: 60%;">更新設備列表</button>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="autoScanCheck">
+                            <label for="autoScanCheck">自動掃描 (2s)</label>
+                        </div>
+                    </div>
+                    <ul id="deviceList" class="device-list">
+                        <!-- 設備清單將由 JS 產生 -->
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h2>連線設定</h2>
+                    <div class="input-group">
+                        <label for="targetAddress">目標 Address/UUID</label>
+                        <input type="text" id="targetAddress" readonly placeholder="請從上方列表選擇設備">
+                    </div>
+                    <div class="input-group">
+                        <label for="serviceUuid">Service UUID</label>
+                        <input type="text" id="serviceUuid" placeholder="例如: 0000180d-0000-1000-8000-00805f9b34fb">
+                    </div>
+                    <div class="input-group">
+                        <label for="readUuid">Read/Notify UUID</label>
+                        <input type="text" id="readUuid" placeholder="要接收通知的 UUID">
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="autoNotifyCheck" checked>
+                        <label for="autoNotifyCheck">連線後自動啟用 Notify</label>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="connectBtn" class="btn success" disabled>連線</button>
+                        <button id="disconnectBtn" class="btn danger" disabled>斷開連線</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 右側：日誌與寫入 -->
+            <section class="panel right-panel">
+                <div class="card flex-grow">
+                    <h2>互動日誌</h2>
+                    <div id="logArea" class="log-area"></div>
+                    <div class="log-actions">
+                        <button id="clearLogBtn" class="btn secondary small">清除日誌</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>發送指令</h2>
+                    <div class="input-group">
+                        <label for="writeUuid">Write UUID</label>
+                        <input type="text" id="writeUuid" placeholder="要寫入資料的 UUID">
+                    </div>
+                    <div class="command-controls">
+                        <div class="radio-group">
+                            <input type="radio" id="modeBinary" name="writeMode" value="binary" checked>
+                            <label for="modeBinary">Binary (Hex)</label>
+                            <input type="radio" id="modeText" name="writeMode" value="text">
+                            <label for="modeText">Text</label>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="commandInput">指令內容 (支援字元攔截)</label>
+                        <!-- 使用 input 事件攔截字元 -->
+                        <input type="text" id="commandInput" placeholder="輸入指令 (例如: FF 0A 或 hello)">
+                    </div>
+                    <div class="input-group">
+                        <label>經過 Function 攔截/轉換後的封包：</label>
+                        <code id="processedCommandDisplay" class="processed-display">等待輸入...</code>
+                    </div>
+                    <button id="sendBtn" class="btn primary" disabled>送出指令</button>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html>
