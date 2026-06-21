@@ -40,6 +40,21 @@ let ws = null;
 let autoScanInterval = null;
 let processedHexCommand = "";
 
+// Language updates dynamic elements
+window.addEventListener('languageChanged', () => {
+    if (isConnected) {
+        connectionStatusText.textContent = t('status_connected');
+    } else {
+        connectionStatusText.textContent = t('status_disconnected');
+    }
+    if (deviceList.innerHTML.includes('無符合設備') || deviceList.innerHTML.includes('No matching devices') || deviceList.innerHTML.includes('Không có thiết bị phù hợp') || deviceList.innerHTML.includes('无符合设备')) {
+        deviceList.innerHTML = `<li class="device-item"><span class="device-address">${t('no_device')}</span></li>`;
+    }
+    if (!resultDisplay.classList.contains('ok') && !resultDisplay.classList.contains('ng')) {
+        resultDisplay.textContent = t('text_waiting');
+    }
+});
+
 // Global Helper to set huge OK/NG status
 window.setTestResult = function(status) {
     if (status === 'OK') {
@@ -49,7 +64,7 @@ window.setTestResult = function(status) {
         resultDisplay.textContent = 'NG';
         resultDisplay.className = 'result-display ng';
     } else {
-        resultDisplay.textContent = '等待測試';
+        resultDisplay.textContent = t('text_waiting');
         resultDisplay.className = 'result-display';
     }
 };
@@ -81,7 +96,6 @@ function loadSettings() {
     
     commandInput.value = localStorage.getItem('ble_lastCommand') || '';
     
-    // Resume auto scan if it was checked
     if (autoScanCheck.checked) {
         autoScanCheck.dispatchEvent(new Event('change'));
     }
@@ -100,7 +114,6 @@ function saveSettings() {
     localStorage.setItem('ble_lastCommand', commandInput.value);
 }
 
-// Event Listeners for saving settings
 [filterInput, hideUnknownCheck, autoScanCheck, serviceUuid, readUuid, writeUuid, autoNotifyCheck, modeBinary, modeText, commandInput].forEach(el => {
     el.addEventListener('change', saveSettings);
     if (el.tagName === 'INPUT' && (el.type === 'text' || el.type === 'radio')) {
@@ -129,16 +142,8 @@ function setupWebSocket() {
         const data = JSON.parse(event.data);
         if (data.type === 'notify') {
             logMessage(`Notify [${data.uuid}]: ${data.data}`);
-            
-            // ============== 客製化測試邏輯區 ==============
-            // 您可以在這裡實作判斷 OK 或 NG 的邏輯
-            // 例如：
-            // if (data.data === '01') window.setTestResult('OK');
-            // else window.setTestResult('NG');
-            // ============================================
-
         } else if (data.type === 'disconnect') {
-            logMessage('設備已斷開連線', 'error');
+            logMessage(t('log_device_disconnected'), 'error');
             setConnectionState(false);
         }
     };
@@ -152,15 +157,15 @@ function setConnectionState(connected, deviceName = '') {
     isConnected = connected;
     if (connected) {
         connectionStatusDot.className = 'dot connected';
-        connectionStatusText.textContent = '已連線';
+        connectionStatusText.textContent = t('status_connected');
         connectedTargetName.textContent = `(${deviceName})`;
         connectBtn.disabled = true;
         disconnectBtn.disabled = false;
         sendBtn.disabled = false;
-        window.setTestResult(''); // Reset testing state
+        window.setTestResult('');
     } else {
         connectionStatusDot.className = 'dot disconnected';
-        connectionStatusText.textContent = '未連線';
+        connectionStatusText.textContent = t('status_disconnected');
         connectedTargetName.textContent = '';
         connectBtn.disabled = false;
         disconnectBtn.disabled = true;
@@ -171,13 +176,13 @@ function setConnectionState(connected, deviceName = '') {
 
 // Scan Devices
 async function fetchDevices(silent = false) {
-    if (!silent) logMessage('掃描中...', 'info');
+    if (!silent) logMessage(t('log_scanning'), 'info');
     try {
         const res = await fetch(`${API_BASE}/devices`);
         const data = await res.json();
         renderDevices(data.devices);
     } catch (err) {
-        if (!silent) logMessage(`掃描失敗: ${err.message}`, 'error');
+        if (!silent) logMessage(`${t('log_scan_fail')}: ${err.message}`, 'error');
     }
 }
 
@@ -209,7 +214,7 @@ function renderDevices(devices) {
     });
 
     if (filtered.length === 0) {
-        deviceList.innerHTML = '<li class="device-item"><span class="device-address">無符合設備</span></li>';
+        deviceList.innerHTML = `<li class="device-item"><span class="device-address">${t('no_device')}</span></li>`;
         return;
     }
 
@@ -233,7 +238,6 @@ function renderDevices(devices) {
             li.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
         });
 
-        // 點兩下自動連線
         li.addEventListener('dblclick', () => {
             targetAddress.value = d.address;
             targetAddress.dataset.name = d.name;
@@ -249,7 +253,7 @@ connectBtn.addEventListener('click', async () => {
     const address = targetAddress.value;
     if (!address) return;
     
-    logMessage(`嘗試連線至 ${address}...`, 'info');
+    logMessage(`${t('log_connecting')} ${address}...`, 'info');
     connectBtn.disabled = true;
     
     try {
@@ -268,9 +272,9 @@ connectBtn.addEventListener('click', async () => {
         
         const data = await res.json();
         if (data.status === 'success') {
-            logMessage('連線成功！', 'info');
+            logMessage(t('log_connect_success'), 'info');
             if (autoNotifyCheck.checked && readUuid.value) {
-                logMessage('已自動啟用 Notify', 'info');
+                logMessage(t('log_auto_notify_enabled'), 'info');
             }
             currentAddress = address;
             setConnectionState(true, targetAddress.dataset.name || 'Unknown');
@@ -278,7 +282,7 @@ connectBtn.addEventListener('click', async () => {
             throw new Error(data.message);
         }
     } catch (err) {
-        logMessage(`連線失敗: ${err.message}`, 'error');
+        logMessage(`${t('log_connect_fail')}: ${err.message}`, 'error');
         setConnectionState(false);
     }
 });
@@ -286,7 +290,7 @@ connectBtn.addEventListener('click', async () => {
 // Disconnect
 disconnectBtn.addEventListener('click', async () => {
     if (!currentAddress) return;
-    logMessage('中斷連線中...', 'info');
+    logMessage(t('log_disconnecting'), 'info');
     try {
         await fetch(`${API_BASE}/disconnect`, {
             method: 'POST',
@@ -295,11 +299,11 @@ disconnectBtn.addEventListener('click', async () => {
         });
         setConnectionState(false);
     } catch (err) {
-        logMessage(`斷開失敗: ${err.message}`, 'error');
+        logMessage(`${t('log_disconnect_fail')}: ${err.message}`, 'error');
     }
 });
 
-// Character hook logic (Silent processing without preview)
+// Character hook logic
 function processCommandHook(inputStr, mode) {
     let resultHex = "";
     if (mode === 'text') {
@@ -313,7 +317,6 @@ function processCommandHook(inputStr, mode) {
     return { valid: resultHex.length % 2 === 0 && resultHex.length > 0, hex: resultHex };
 }
 
-// Process input on the fly
 commandInput.addEventListener('input', (e) => {
     const mode = document.querySelector('input[name="writeMode"]:checked').value;
     const result = processCommandHook(e.target.value, mode);
@@ -337,11 +340,11 @@ document.querySelectorAll('input[name="writeMode"]').forEach(radio => {
 // Send Command
 sendBtn.addEventListener('click', async () => {
     if (!currentAddress || !writeUuid.value) {
-        logMessage("請確認已連線且填寫 Write UUID (請至設定分頁確認)", "error");
+        logMessage(t('log_send_err_noconn'), "error");
         return;
     }
     if (!processedHexCommand) {
-        logMessage("指令無效或為空", "error");
+        logMessage(t('log_send_err_invalid'), "error");
         return;
     }
 
@@ -358,15 +361,12 @@ sendBtn.addEventListener('click', async () => {
         });
         const data = await res.json();
         if (data.status === 'success') {
-            logMessage(`已發送: ${processedHexCommand}`);
-            
-            // 您可以在送出指令後，使用 window.setTestResult()
-            
+            logMessage(`${t('log_sent')}: ${processedHexCommand}`);
         } else {
             throw new Error(data.message);
         }
     } catch (err) {
-        logMessage(`發送失敗: ${err.message}`, 'error');
+        logMessage(`${t('log_send_fail')}: ${err.message}`, 'error');
     }
 });
 

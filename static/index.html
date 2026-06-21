@@ -9,17 +9,25 @@
 <body>
     <div class="app-container">
         <header>
-            <h1>Bluetooth Tester</h1>
-            <div class="status-indicator" id="connectionStatus">
-                <span class="dot disconnected"></span>
-                <span class="text">未連線</span>
-                <span class="target-name" id="connectedTargetName"></span>
+            <h1 data-i18n="title">Bluetooth Tester</h1>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <select id="langSelect" class="lang-select">
+                    <option value="zh-TW">繁體中文</option>
+                    <option value="zh-CN">简体中文</option>
+                    <option value="en">English</option>
+                    <option value="vi">Tiếng Việt</option>
+                </select>
+                <div class="status-indicator" id="connectionStatus">
+                    <span class="dot disconnected"></span>
+                    <span class="text" data-i18n="status_disconnected">未連線</span>
+                    <span class="target-name" id="connectedTargetName"></span>
+                </div>
             </div>
         </header>
 
         <div class="tabs">
-            <button class="tab-btn active" data-tab="mainTab">主要控制</button>
-            <button class="tab-btn" data-tab="settingsTab">設定與日誌</button>
+            <button class="tab-btn active" data-tab="mainTab" data-i18n="tab_main">主要控制</button>
+            <button class="tab-btn" data-tab="settingsTab" data-i18n="tab_settings">設定與日誌</button>
         </div>
 
         <main>
@@ -29,18 +37,18 @@
                 <!-- 上方：全幅的指令輸入區 -->
                 <section class="top-panel" style="width: 100%;">
                     <div class="card" style="border-top-left-radius: 0;">
-                        <h2>發送指令</h2>
+                        <h2 data-i18n="header_send_cmd">發送指令</h2>
                         <div class="command-controls" style="margin-bottom: 12px;">
                             <div class="radio-group">
                                 <input type="radio" id="modeBinary" name="writeMode" value="binary" checked>
-                                <label for="modeBinary">Binary (Hex)</label>
+                                <label for="modeBinary" data-i18n="mode_binary">Binary (Hex)</label>
                                 <input type="radio" id="modeText" name="writeMode" value="text">
-                                <label for="modeText">Text</label>
+                                <label for="modeText" data-i18n="mode_text">Text</label>
                             </div>
                         </div>
                         <div style="display: flex; gap: 15px; align-items: stretch;">
-                            <input type="text" id="commandInput" placeholder="請刷入條碼或輸入指令 (例如: FF 0A 或是 hello)" style="flex: 1;">
-                            <button id="sendBtn" class="btn primary" disabled>送出指令</button>
+                            <input type="text" id="commandInput" data-i18n-placeholder="placeholder_cmd" placeholder="請刷入條碼或輸入指令 (例如: FF 0A 或是 hello)" style="flex: 1;">
+                            <button id="sendBtn" class="btn primary" data-i18n="btn_send" disabled>送出指令</button>
                         </div>
                     </div>
                 </section>
@@ -50,20 +58,20 @@
                     <!-- 左側：掃描與連線 -->
                     <section class="panel left-panel" style="flex: 1;">
                         <div class="card" style="border-top-left-radius: 12px;">
-                            <h2>過濾與掃描</h2>
+                            <h2 data-i18n="header_scan">過濾與掃描</h2>
                             <div class="input-group">
-                                <label for="filterInput">過濾條件 (Name 或 Address/UUID)</label>
-                                <input type="text" id="filterInput" placeholder="例如: MyDevice 或 38A8D5F6...">
+                                <label for="filterInput" data-i18n="label_filter">過濾條件 (Name 或 Address/UUID)</label>
+                                <input type="text" id="filterInput" data-i18n-placeholder="placeholder_filter" placeholder="例如: MyDevice 或 38A8D5F6...">
                                 <div class="checkbox-group" style="margin-top: 4px;">
                                     <input type="checkbox" id="hideUnknownCheck">
-                                    <label for="hideUnknownCheck">隱藏無名稱 (Unknown) 的設備</label>
+                                    <label for="hideUnknownCheck" data-i18n="label_hide_unknown">隱藏無名稱 (Unknown) 的設備</label>
                                 </div>
                             </div>
                             <div class="action-buttons" style="align-items: center; justify-content: space-between; margin-top: 0;">
-                                <button id="scanBtn" class="btn primary" style="flex: unset; width: 55%;">更新設備列表</button>
+                                <button id="scanBtn" class="btn primary" style="flex: unset; width: 55%;" data-i18n="btn_scan">更新設備列表</button>
                                 <div class="checkbox-group">
                                     <input type="checkbox" id="autoScanCheck">
-                                    <label for="autoScanCheck">自動掃描</label>
+                                    <label for="autoScanCheck" data-i18n="label_auto_scan">自動掃描</label>
                                 </div>
                             </div>
                             <ul id="deviceList" class="device-list">
@@ -72,14 +80,14 @@
                         </div>
 
                         <div class="card">
-                            <h2>連線控制</h2>
+                            <h2 data-i18n="header_connect">連線控制</h2>
                             <div class="input-group">
-                                <label for="targetAddress">目標 Address/UUID</label>
-                                <input type="text" id="targetAddress" readonly placeholder="請從上方列表選擇設備 (點擊兩下自動連線)">
+                                <label for="targetAddress" data-i18n="label_target">目標 Address/UUID</label>
+                                <input type="text" id="targetAddress" readonly data-i18n-placeholder="placeholder_target" placeholder="請從上方列表選擇設備 (點擊兩下自動連線)">
                             </div>
                             <div class="action-buttons">
-                                <button id="connectBtn" class="btn success" disabled>連線</button>
-                                <button id="disconnectBtn" class="btn danger" disabled>斷開連線</button>
+                                <button id="connectBtn" class="btn success" data-i18n="btn_connect" disabled>連線</button>
+                                <button id="disconnectBtn" class="btn danger" data-i18n="btn_disconnect" disabled>斷開連線</button>
                             </div>
                         </div>
                     </section>
@@ -87,8 +95,8 @@
                     <!-- 右側：測試結果 -->
                     <section class="panel right-panel" style="flex: 1;">
                         <div class="card flex-grow" style="display: flex; flex-direction: column; height: 100%;">
-                            <h2>測試結果</h2>
-                            <div id="resultDisplay" class="result-display" style="flex-grow: 1;">
+                            <h2 data-i18n="header_result">測試結果</h2>
+                            <div id="resultDisplay" class="result-display" style="flex-grow: 1;" data-i18n="text_waiting">
                                 等待測試
                             </div>
                         </div>
@@ -100,38 +108,39 @@
             <div id="settingsTab" class="tab-content">
                 <section class="panel left-panel">
                     <div class="card">
-                        <h2>UUID 設定</h2>
+                        <h2 data-i18n="header_uuid">UUID 設定</h2>
                         <div class="input-group">
-                            <label for="serviceUuid">Service UUID</label>
-                            <input type="text" id="serviceUuid" placeholder="例如: 0000180d-0000-1000-8000-00805f9b34fb">
+                            <label for="serviceUuid" data-i18n="label_service">Service UUID</label>
+                            <input type="text" id="serviceUuid" data-i18n-placeholder="placeholder_service" placeholder="例如: 0000180d-0000-1000-8000-00805f9b34fb">
                         </div>
                         <div class="input-group">
-                            <label for="readUuid">Read/Notify UUID</label>
-                            <input type="text" id="readUuid" placeholder="要接收通知的 UUID">
+                            <label for="readUuid" data-i18n="label_read">Read/Notify UUID</label>
+                            <input type="text" id="readUuid" data-i18n-placeholder="placeholder_read" placeholder="要接收通知的 UUID">
                         </div>
                         <div class="input-group">
-                            <label for="writeUuid">Write UUID</label>
-                            <input type="text" id="writeUuid" placeholder="要寫入資料的 UUID">
+                            <label for="writeUuid" data-i18n="label_write">Write UUID</label>
+                            <input type="text" id="writeUuid" data-i18n-placeholder="placeholder_write" placeholder="要寫入資料的 UUID">
                         </div>
                         <div class="checkbox-group" style="margin-top: 10px;">
                             <input type="checkbox" id="autoNotifyCheck" checked>
-                            <label for="autoNotifyCheck">連線後自動啟用 Notify</label>
+                            <label for="autoNotifyCheck" data-i18n="label_auto_notify">連線後自動啟用 Notify</label>
                         </div>
                     </div>
                 </section>
 
                 <section class="panel right-panel">
                     <div class="card flex-grow" style="display: flex; flex-direction: column; height: 100%;">
-                        <h2>互動日誌</h2>
+                        <h2 data-i18n="header_log">互動日誌</h2>
                         <div id="logArea" class="log-area"></div>
                         <div class="log-actions">
-                            <button id="clearLogBtn" class="btn secondary small">清除日誌</button>
+                            <button id="clearLogBtn" class="btn secondary small" data-i18n="btn_clear_log">清除日誌</button>
                         </div>
                     </div>
                 </section>
             </div>
         </main>
     </div>
+    <script src="/static/i18n.js"></script>
     <script src="/static/app.js"></script>
 </body>
 </html>
