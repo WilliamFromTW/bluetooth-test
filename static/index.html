@@ -24,54 +24,13 @@
 
         <main>
             <!-- Tab 1: 主要控制 -->
-            <div id="mainTab" class="tab-content active">
-                <section class="panel left-panel">
-                    <div class="card flex-grow">
-                        <h2>過濾與掃描</h2>
-                        <div class="input-group">
-                            <label for="filterInput">過濾條件 (Name 或 Address/UUID)</label>
-                            <input type="text" id="filterInput" placeholder="例如: MyDevice 或 38A8D5F6...">
-                            <div class="checkbox-group" style="margin-top: 4px;">
-                                <input type="checkbox" id="hideUnknownCheck">
-                                <label for="hideUnknownCheck">隱藏無名稱 (Unknown) 的設備</label>
-                            </div>
-                        </div>
-                        <div class="action-buttons" style="align-items: center; justify-content: space-between; margin-top: 0;">
-                            <button id="scanBtn" class="btn primary" style="flex: unset; width: 55%;">更新設備列表</button>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="autoScanCheck">
-                                <label for="autoScanCheck">自動掃描</label>
-                            </div>
-                        </div>
-                        <ul id="deviceList" class="device-list">
-                            <!-- 設備清單將由 JS 產生 -->
-                        </ul>
-                    </div>
-
-                    <div class="card">
-                        <h2>連線控制</h2>
-                        <div class="input-group">
-                            <label for="targetAddress">目標 Address/UUID</label>
-                            <input type="text" id="targetAddress" readonly placeholder="請從上方列表選擇設備 (點擊兩下自動連線)">
-                        </div>
-                        <div class="action-buttons">
-                            <button id="connectBtn" class="btn success" disabled>連線</button>
-                            <button id="disconnectBtn" class="btn danger" disabled>斷開連線</button>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="panel right-panel">
-                    <div class="card flex-grow" style="display: flex; flex-direction: column;">
-                        <h2>測試結果</h2>
-                        <div id="resultDisplay" class="result-display">
-                            等待測試
-                        </div>
-                    </div>
-
-                    <div class="card">
+            <div id="mainTab" class="tab-content active" style="flex-direction: column;">
+                
+                <!-- 上方：全幅的指令輸入區 -->
+                <section class="top-panel" style="width: 100%;">
+                    <div class="card" style="border-top-left-radius: 0;">
                         <h2>發送指令</h2>
-                        <div class="command-controls">
+                        <div class="command-controls" style="margin-bottom: 12px;">
                             <div class="radio-group">
                                 <input type="radio" id="modeBinary" name="writeMode" value="binary" checked>
                                 <label for="modeBinary">Binary (Hex)</label>
@@ -79,12 +38,61 @@
                                 <label for="modeText">Text</label>
                             </div>
                         </div>
-                        <div class="input-group" style="margin-top: 10px;">
-                            <label for="commandInput">指令內容 (觸發攔截 Function)</label>
-                            <input type="text" id="commandInput" placeholder="輸入指令 (例如: FF 0A 或 hello)">
+                        <div style="display: flex; gap: 15px; align-items: stretch;">
+                            <input type="text" id="commandInput" placeholder="請刷入條碼或輸入指令 (例如: FF 0A 或是 hello)" style="flex: 1;">
+                            <button id="sendBtn" class="btn primary" disabled>送出指令</button>
                         </div>
-                        <button id="sendBtn" class="btn primary" style="margin-top: 15px;" disabled>送出指令</button>
                     </div>
+                </section>
+
+                <!-- 下方：左右分欄 -->
+                <section class="bottom-panels" style="display: flex; gap: 20px; flex: 1;">
+                    <!-- 左側：掃描與連線 -->
+                    <section class="panel left-panel" style="flex: 1;">
+                        <div class="card" style="border-top-left-radius: 12px;">
+                            <h2>過濾與掃描</h2>
+                            <div class="input-group">
+                                <label for="filterInput">過濾條件 (Name 或 Address/UUID)</label>
+                                <input type="text" id="filterInput" placeholder="例如: MyDevice 或 38A8D5F6...">
+                                <div class="checkbox-group" style="margin-top: 4px;">
+                                    <input type="checkbox" id="hideUnknownCheck">
+                                    <label for="hideUnknownCheck">隱藏無名稱 (Unknown) 的設備</label>
+                                </div>
+                            </div>
+                            <div class="action-buttons" style="align-items: center; justify-content: space-between; margin-top: 0;">
+                                <button id="scanBtn" class="btn primary" style="flex: unset; width: 55%;">更新設備列表</button>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="autoScanCheck">
+                                    <label for="autoScanCheck">自動掃描</label>
+                                </div>
+                            </div>
+                            <ul id="deviceList" class="device-list">
+                                <!-- 設備清單將由 JS 產生 -->
+                            </ul>
+                        </div>
+
+                        <div class="card">
+                            <h2>連線控制</h2>
+                            <div class="input-group">
+                                <label for="targetAddress">目標 Address/UUID</label>
+                                <input type="text" id="targetAddress" readonly placeholder="請從上方列表選擇設備 (點擊兩下自動連線)">
+                            </div>
+                            <div class="action-buttons">
+                                <button id="connectBtn" class="btn success" disabled>連線</button>
+                                <button id="disconnectBtn" class="btn danger" disabled>斷開連線</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 右側：測試結果 -->
+                    <section class="panel right-panel" style="flex: 1;">
+                        <div class="card flex-grow" style="display: flex; flex-direction: column; height: 100%;">
+                            <h2>測試結果</h2>
+                            <div id="resultDisplay" class="result-display" style="flex-grow: 1;">
+                                等待測試
+                            </div>
+                        </div>
+                    </section>
                 </section>
             </div>
 
