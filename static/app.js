@@ -29,6 +29,17 @@ const connectionStatusDot = document.querySelector('.status-indicator .dot');
 const connectionStatusText = document.querySelector('.status-indicator .text');
 const resultDisplay = document.getElementById('resultDisplay');
 
+// History Log Elements
+const autoSaveLogCheck = document.getElementById('autoSaveLogCheck');
+const historyLogBtn = document.getElementById('historyLogBtn');
+const historyModal = document.getElementById('historyModal');
+const closeHistoryModal = document.getElementById('closeHistoryModal');
+const historyDateSelect = document.getElementById('historyDateSelect');
+const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
+const historyLogArea = document.getElementById('historyLogArea');
+const exportHistoryBtn = document.getElementById('exportHistoryBtn');
+const deleteHistoryBtn = document.getElementById('deleteHistoryBtn');
+
 // Tabs
 const tabBtns = document.querySelectorAll('.tab-btn');
 const tabContents = document.querySelectorAll('.tab-content');
@@ -90,6 +101,10 @@ function loadSettings() {
     writeUuid.value = localStorage.getItem('ble_writeUuid') || '';
     autoNotifyCheck.checked = localStorage.getItem('ble_autoNotify') !== 'false';
     
+    if (autoSaveLogCheck) {
+        autoSaveLogCheck.checked = localStorage.getItem('ble_autoSaveLog') !== 'false';
+    }
+    
     const savedMode = localStorage.getItem('ble_writeMode');
     if (savedMode === 'text') modeText.checked = true;
     else modeBinary.checked = true;
@@ -110,11 +125,17 @@ function saveSettings() {
     localStorage.setItem('ble_readUuid', readUuid.value);
     localStorage.setItem('ble_writeUuid', writeUuid.value);
     localStorage.setItem('ble_autoNotify', autoNotifyCheck.checked);
+    if (autoSaveLogCheck) {
+        localStorage.setItem('ble_autoSaveLog', autoSaveLogCheck.checked);
+    }
     localStorage.setItem('ble_writeMode', modeText.checked ? 'text' : 'binary');
     localStorage.setItem('ble_lastCommand', commandInput.value);
 }
 
-[filterInput, hideUnknownCheck, autoScanCheck, serviceUuid, readUuid, writeUuid, autoNotifyCheck, modeBinary, modeText, commandInput].forEach(el => {
+let elsToSave = [filterInput, hideUnknownCheck, autoScanCheck, serviceUuid, readUuid, writeUuid, autoNotifyCheck, modeBinary, modeText, commandInput];
+if (autoSaveLogCheck) elsToSave.push(autoSaveLogCheck);
+
+elsToSave.forEach(el => {
     el.addEventListener('change', saveSettings);
     if (el.tagName === 'INPUT' && (el.type === 'text' || el.type === 'radio')) {
         el.addEventListener('input', saveSettings);
@@ -126,14 +147,126 @@ function logMessage(msg, type = '') {
     const div = document.createElement('div');
     div.className = `log-entry ${type}`;
     const time = new Date().toLocaleTimeString();
-    div.textContent = `[${time}] ${msg}`;
+    const logStr = `[${time}] ${msg}`;
+    div.textContent = logStr;
     logArea.appendChild(div);
     logArea.scrollTop = logArea.scrollHeight;
+    
+    // Auto-save to backend
+    if (autoSaveLogCheck && autoSaveLogCheck.checked) {
+        fetch(`${API_BASE}/logs`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ log: logStr })
+        }).catch(e => console.error("Auto-save log failed", e));
+    }
 }
 
 clearLogBtn.addEventListener('click', () => {
     logArea.innerHTML = '';
 });
+
+// History Log Modal Logic
+async function fetchHistoryDates() {
+    try {
+        const res = await fetch(`${API_BASE}/logs/dates`);
+        const data = await res.json();
+        historyDateSelect.innerHTML = '';
+        if (data.dates && data.dates.length > 0) {
+            data.dates.forEach(date => {
+                const opt = document.createElement('option');
+                opt.value = date;
+                opt.textContent = date;
+                historyDateSelect.appendChild(opt);
+            });
+            fetchHistoryContent(data.dates[0]);
+        } else {
+            historyLogArea.textContent = t('msg_no_records');
+        }
+    } catch (e) {
+        historyLogArea.textContent = t('msg_error_load_dates');
+    }
+}
+
+async function fetchHistoryContent(date) {
+    if (!date) return;
+    historyLogArea.textContent = t('msg_loading_history');
+    try {
+        const res = await fetch(`${API_BASE}/logs/${date}`);
+        const data = await res.json();
+        if (data.content) {
+            historyLogArea.textContent = data.content;
+        } else {
+            historyLogArea.textContent = data.message || t('msg_no_content');
+        }
+    } catch (e) {
+        historyLogArea.textContent = t('msg_error_load_content');
+    }
+}
+
+if (historyLogBtn) {
+    historyLogBtn.addEventListener('click', () => {
+        historyModal.classList.add('show');
+        fetchHistoryDates();
+    });
+}
+
+if (closeHistoryModal) {
+    closeHistoryModal.addEventListener('click', () => {
+        historyModal.classList.remove('show');
+    });
+}
+
+window.addEventListener('click', (e) => {
+    if (e.target === historyModal) {
+        historyModal.classList.remove('show');
+    }
+});
+
+if (refreshHistoryBtn) {
+    refreshHistoryBtn.addEventListener('click', () => {
+        fetchHistoryDates();
+    });
+}
+
+if (historyDateSelect) {
+    historyDateSelect.addEventListener('change', (e) => {
+        fetchHistoryContent(e.target.value);
+    });
+}
+
+if (deleteHistoryBtn) {
+    deleteHistoryBtn.addEventListener('click', async () => {
+        const date = historyDateSelect.value;
+        if (!date) return;
+        if (confirm(t('confirm_delete_history').replace('{date}', date))) {
+            try {
+                await fetch(`${API_BASE}/logs/${date}`, { method: 'DELETE' });
+                fetchHistoryDates();
+            } catch (e) {
+                alert(t('alert_delete_failed'));
+            }
+        }
+    });
+}
+
+if (exportHistoryBtn) {
+    exportHistoryBtn.addEventListener('click', () => {
+        const content = historyLogArea.textContent;
+        const date = historyDateSelect.value;
+        if (!content || !date) return;
+        
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ble_log_${date}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+}
 
 // WebSocket setup
 function setupWebSocket() {

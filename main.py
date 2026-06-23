@@ -1,6 +1,11 @@
 import asyncio
 import time
+import os
+import datetime
 from typing import Dict, Any, Optional
+
+LOGS_DIR = "logs"
+os.makedirs(LOGS_DIR, exist_ok=True)
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -182,3 +187,49 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         active_websockets.remove(websocket)
+
+class LogRequest(BaseModel):
+    log: str
+
+@app.post("/api/logs")
+async def save_log(req: LogRequest):
+    today = datetime.date.today().isoformat()
+    log_file = os.path.join(LOGS_DIR, f"{today}.log")
+    try:
+        with open(log_file, "a", encoding="utf-8") as f:
+            f.write(req.log + "\n")
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.get("/api/logs/dates")
+async def get_log_dates():
+    try:
+        files = [f.replace(".log", "") for f in os.listdir(LOGS_DIR) if f.endswith(".log")]
+        files.sort(reverse=True)
+        return {"dates": files}
+    except Exception as e:
+        return {"dates": []}
+
+@app.get("/api/logs/{date}")
+async def get_log_content(date: str):
+    log_file = os.path.join(LOGS_DIR, f"{date}.log")
+    if not os.path.exists(log_file):
+        return {"status": "error", "message": "Log not found"}
+    try:
+        with open(log_file, "r", encoding="utf-8") as f:
+            content = f.read()
+        return {"content": content}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.delete("/api/logs/{date}")
+async def delete_log(date: str):
+    log_file = os.path.join(LOGS_DIR, f"{date}.log")
+    if os.path.exists(log_file):
+        try:
+            os.remove(log_file)
+            return {"status": "success"}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+    return {"status": "error", "message": "Log not found"}

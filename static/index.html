@@ -132,13 +132,42 @@
                     <div class="card flex-grow" style="display: flex; flex-direction: column; height: 100%;">
                         <h2 data-i18n="header_log">互動日誌</h2>
                         <div id="logArea" class="log-area"></div>
-                        <div class="log-actions">
-                            <button id="clearLogBtn" class="btn secondary small" data-i18n="btn_clear_log">清除日誌</button>
+                        <div class="log-actions" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div class="checkbox-group" style="margin: 0;">
+                                <input type="checkbox" id="autoSaveLogCheck" checked>
+                                <label for="autoSaveLogCheck" data-i18n="label_auto_save_log">自動保存至伺服器</label>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button id="historyLogBtn" class="btn secondary small" data-i18n="btn_history_log">📅 歷史日誌</button>
+                                <button id="clearLogBtn" class="btn secondary small" data-i18n="btn_clear_screen">清除畫面</button>
+                            </div>
                         </div>
                     </div>
                 </section>
             </div>
         </main>
+
+        <!-- History Log Modal -->
+        <div id="historyModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 data-i18n="header_history_modal">歷史日誌檢視器</h2>
+                    <span class="close-modal" id="closeHistoryModal">&times;</span>
+                </div>
+                <div class="history-controls">
+                    <label for="historyDateSelect" data-i18n="label_select_date">選擇日期:</label>
+                    <select id="historyDateSelect" class="lang-select" style="margin: 0 10px;"></select>
+                    <button id="refreshHistoryBtn" class="btn secondary small" data-i18n="btn_refresh">🔄</button>
+                </div>
+                <div id="historyLogArea" class="log-area history-log-area">
+                    <!-- 歷史日誌顯示區 -->
+                </div>
+                <div class="history-actions">
+                    <button id="exportHistoryBtn" class="btn primary small" data-i18n="btn_export_txt">匯出為 TXT</button>
+                    <button id="deleteHistoryBtn" class="btn danger small" data-i18n="btn_delete_history">清空此日紀錄</button>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="/static/i18n.js"></script>
     <script src="/static/app.js"></script>
