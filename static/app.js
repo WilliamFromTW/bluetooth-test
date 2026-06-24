@@ -36,6 +36,8 @@ const connectionStatusDot = document.getElementById('connectionStatusDot');
 const connectionStatusText = document.getElementById('connectionStatusText');
 const resultDisplay = document.getElementById('resultDisplay');
 const responseDisplay = document.getElementById('responseDisplay');
+const btnClearLog = document.getElementById('btnClearLog');
+const btnClearResult = document.getElementById('btnClearResult');
 const tickerLogText = document.getElementById('tickerLogText');
 
 // Theme Toggle
@@ -544,6 +546,18 @@ commandInput.addEventListener('input', (e) => {
         sendBtn.disabled = true;
     }
 });
+
+if (btnClearLog) {
+    btnClearLog.addEventListener('click', () => {
+        if (responseDisplay) responseDisplay.textContent = '等待回應...';
+    });
+}
+
+if (btnClearResult) {
+    btnClearResult.addEventListener('click', () => {
+        if (window.setTestResult) window.setTestResult('');
+    });
+}
 
 document.querySelectorAll('input[name="writeMode"]').forEach(radio => {
     radio.addEventListener('change', () => {
