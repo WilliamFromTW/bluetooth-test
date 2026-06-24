@@ -1,6 +1,8 @@
 // Configuration
-const API_BASE = `http://${window.location.host}/api`;
-const WS_URL = `ws://${window.location.host}/ws`;
+const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const API_BASE = `${protocol}//${window.location.host}/api`;
+const WS_URL = `${wsProtocol}//${window.location.host}/ws`;
 
 // DOM Elements
 const filterInput = document.getElementById('filterInput');
