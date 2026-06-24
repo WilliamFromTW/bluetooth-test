@@ -50,3 +50,79 @@ pip install -r requirements.txt
 ```bash
 uvicorn main:app --reload
 ```
+
+## 5. 部署與遠端存取 (反向代理設定)
+
+若希望在同一區域網路內（例如手機或其他電腦）也能開啟測試介面並順利使用藍牙功能，**必須確保前端網頁是透過 `https://` 載入的**（瀏覽器的 Web Bluetooth API 安全限制）。
+
+首先，啟動伺服器時請允許外部連線（綁定 `0.0.0.0`）：
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+接著，您可以使用 Nginx 或 Apache HTTPD 作為反向代理伺服器，並設定 HTTPS。
+**請特別注意：本系統依賴 WebSocket (`/ws`) 傳遞即時連線資料，反向代理必須支援 WebSocket Upgrade 才能正常運作。**
+
+### Nginx 設定範例
+
+在 Nginx 的站點設定（如 `/etc/nginx/sites-available/default`）中加入以下區塊：
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name your_domain_or_ip;
+
+    # SSL 憑證設定 (請替換為您的憑證路徑)
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+
+    # 一般 HTTP 請求轉發
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # WebSocket 請求轉發 (必須設定)
+    location /ws {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+    }
+}
+```
+
+### Apache HTTPD 設定範例
+
+確保已啟用 `mod_proxy`, `mod_proxy_http`, `mod_proxy_wstunnel` 以及 `mod_ssl` 模組：
+```bash
+a2enmod proxy proxy_http proxy_wstunnel ssl
+```
+
+在您的 VirtualHost 設定中加入以下設定：
+
+```apache
+<VirtualHost *:443>
+    ServerName your_domain_or_ip
+
+    # SSL 憑證設定
+    SSLEngine on
+    SSLCertificateFile /path/to/cert.pem
+    SSLCertificateKeyFile /path/to/key.pem
+
+    # 保留 Host Header 給後端
+    ProxyPreserveHost On
+
+    # 優先處理 WebSocket 轉發 (必須設定)
+    ProxyPass "/ws" "ws://127.0.0.1:8000/ws"
+    ProxyPassReverse "/ws" "ws://127.0.0.1:8000/ws"
+
+    # 處理一般 HTTP 轉發
+    ProxyPass "/" "http://127.0.0.1:8000/"
+    ProxyPassReverse "/" "http://127.0.0.1:8000/"
+</VirtualHost>
+```
