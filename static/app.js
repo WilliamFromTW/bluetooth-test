@@ -4,6 +4,7 @@ const WS_URL = `ws://${window.location.host}/ws`;
 
 // DOM Elements
 const filterInput = document.getElementById('filterInput');
+const filterAdvHex = document.getElementById('filterAdvHex');
 const hideUnknownCheck = document.getElementById('hideUnknownCheck');
 const scanBtn = document.getElementById('scanBtn');
 const autoScanCheck = document.getElementById('autoScanCheck');
@@ -25,24 +26,41 @@ const modeText = document.getElementById('modeText');
 
 const logArea = document.getElementById('logArea');
 const clearLogBtn = document.getElementById('clearLogBtn');
-const connectionStatusDot = document.querySelector('.status-indicator .dot');
-const connectionStatusText = document.querySelector('.status-indicator .text');
+// Modal settings
+const settingsModal = document.getElementById('settingsModal');
+const settingsBtn = document.getElementById('settingsBtn');
+const closeSettingsModal = document.getElementById('closeSettingsModal');
+
+const connectionStatusCard = document.getElementById('connectionStatusCard');
+const connectionStatusDot = document.getElementById('connectionStatusDot');
+const connectionStatusText = document.getElementById('connectionStatusText');
 const resultDisplay = document.getElementById('resultDisplay');
+const responseDisplay = document.getElementById('responseDisplay');
+const tickerLogText = document.getElementById('tickerLogText');
 
-// History Log Elements
-const autoSaveLogCheck = document.getElementById('autoSaveLogCheck');
-const historyLogBtn = document.getElementById('historyLogBtn');
-const historyModal = document.getElementById('historyModal');
-const closeHistoryModal = document.getElementById('closeHistoryModal');
-const historyDateSelect = document.getElementById('historyDateSelect');
-const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
-const historyLogArea = document.getElementById('historyLogArea');
-const exportHistoryBtn = document.getElementById('exportHistoryBtn');
-const deleteHistoryBtn = document.getElementById('deleteHistoryBtn');
+// Theme Toggle
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+let currentTheme = localStorage.getItem('ble_theme') || 'dark';
 
-// Tabs
-const tabBtns = document.querySelectorAll('.tab-btn');
-const tabContents = document.querySelectorAll('.tab-content');
+function applyTheme(theme) {
+    if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        if (themeToggleBtn) themeToggleBtn.textContent = '🌙 暗色';
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+        if (themeToggleBtn) themeToggleBtn.textContent = '🌞 亮色';
+    }
+    localStorage.setItem('ble_theme', theme);
+    currentTheme = theme;
+}
+
+applyTheme(currentTheme);
+
+if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+        applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    });
+}
 
 // State
 let isConnected = false;
@@ -62,7 +80,7 @@ window.addEventListener('languageChanged', () => {
         deviceList.innerHTML = `<li class="device-item"><span class="device-address">${t('no_device')}</span></li>`;
     }
     if (!resultDisplay.classList.contains('ok') && !resultDisplay.classList.contains('ng')) {
-        resultDisplay.textContent = t('text_waiting');
+        resultDisplay.textContent = '';
     }
 });
 
@@ -75,24 +93,23 @@ window.setTestResult = function(status) {
         resultDisplay.textContent = 'NG';
         resultDisplay.className = 'result-display ng';
     } else {
-        resultDisplay.textContent = t('text_waiting');
+        resultDisplay.textContent = '';
         resultDisplay.className = 'result-display';
     }
 };
 
-// Tabs Logic
-tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        tabBtns.forEach(b => b.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(btn.dataset.tab).classList.add('active');
-    });
+// Settings Modal Logic
+settingsBtn.addEventListener('click', () => {
+    settingsModal.classList.add('show');
+});
+closeSettingsModal.addEventListener('click', () => {
+    settingsModal.classList.remove('show');
 });
 
 // Load settings from LocalStorage
 function loadSettings() {
     filterInput.value = localStorage.getItem('ble_filter') || '';
+    if (filterAdvHex) filterAdvHex.value = localStorage.getItem('ble_filterAdvHex') || '';
     hideUnknownCheck.checked = localStorage.getItem('ble_hideUnknown') === 'true';
     autoScanCheck.checked = localStorage.getItem('ble_autoScan') === 'true';
     
@@ -119,6 +136,7 @@ function loadSettings() {
 // Save settings to LocalStorage
 function saveSettings() {
     localStorage.setItem('ble_filter', filterInput.value);
+    if (filterAdvHex) localStorage.setItem('ble_filterAdvHex', filterAdvHex.value);
     localStorage.setItem('ble_hideUnknown', hideUnknownCheck.checked);
     localStorage.setItem('ble_autoScan', autoScanCheck.checked);
     localStorage.setItem('ble_serviceUuid', serviceUuid.value);
@@ -132,7 +150,7 @@ function saveSettings() {
     localStorage.setItem('ble_lastCommand', commandInput.value);
 }
 
-let elsToSave = [filterInput, hideUnknownCheck, autoScanCheck, serviceUuid, readUuid, writeUuid, autoNotifyCheck, modeBinary, modeText, commandInput];
+let elsToSave = [filterInput, filterAdvHex, hideUnknownCheck, autoScanCheck, serviceUuid, readUuid, writeUuid, autoNotifyCheck, modeBinary, modeText, commandInput];
 if (autoSaveLogCheck) elsToSave.push(autoSaveLogCheck);
 
 elsToSave.forEach(el => {
@@ -152,6 +170,11 @@ function logMessage(msg, type = '') {
     logArea.appendChild(div);
     logArea.scrollTop = logArea.scrollHeight;
     
+    // Ticker Log
+    if (tickerLogText) {
+        tickerLogText.textContent = logStr;
+    }
+    
     // Auto-save to backend
     if (autoSaveLogCheck && autoSaveLogCheck.checked) {
         fetch(`${API_BASE}/logs`, {
@@ -160,6 +183,24 @@ function logMessage(msg, type = '') {
             body: JSON.stringify({ log: logStr })
         }).catch(e => console.error("Auto-save log failed", e));
     }
+}
+
+// Write to Response Data Panel
+function logResponse(msg) {
+    if (!responseDisplay) return;
+    if (responseDisplay.textContent.includes('等待回應...')) {
+        responseDisplay.textContent = '';
+    }
+    const div = document.createElement('div');
+    const time = new Date().toLocaleTimeString();
+    div.textContent = `[${time}] ${msg}`;
+    
+    // Add alternating colors or distinct styling for Tx/Rx if needed
+    if (msg.startsWith('Tx')) div.style.color = 'var(--primary-color)';
+    if (msg.startsWith('Rx')) div.style.color = 'var(--success-color)';
+    
+    responseDisplay.appendChild(div);
+    responseDisplay.scrollTop = responseDisplay.scrollHeight;
 }
 
 clearLogBtn.addEventListener('click', () => {
@@ -221,6 +262,9 @@ window.addEventListener('click', (e) => {
     if (e.target === historyModal) {
         historyModal.classList.remove('show');
     }
+    if (e.target === settingsModal) {
+        settingsModal.classList.remove('show');
+    }
 });
 
 if (refreshHistoryBtn) {
@@ -275,6 +319,7 @@ function setupWebSocket() {
         const data = JSON.parse(event.data);
         if (data.type === 'notify') {
             logMessage(`Notify [${data.uuid}]: ${data.data}`);
+            logResponse(`Rx (Notify): ${data.data}`);
         } else if (data.type === 'disconnect') {
             logMessage(t('log_device_disconnected'), 'error');
             setConnectionState(false);
@@ -291,17 +336,22 @@ function setConnectionState(connected, deviceName = '') {
     if (connected) {
         connectionStatusDot.className = 'dot connected';
         connectionStatusText.textContent = t('status_connected');
-        connectedTargetName.textContent = `(${deviceName})`;
+        connectedTargetName.textContent = `[${deviceName}] 📍 MAC: ${currentAddress}`;
+        connectionStatusCard.classList.remove('disconnected');
+        connectionStatusCard.classList.add('connected');
+        connectionStatusCard.disabled = false;
         connectBtn.disabled = true;
-        disconnectBtn.disabled = false;
         sendBtn.disabled = false;
         window.setTestResult('');
+        if (responseDisplay) responseDisplay.textContent = '等待回應...';
     } else {
         connectionStatusDot.className = 'dot disconnected';
         connectionStatusText.textContent = t('status_disconnected');
-        connectedTargetName.textContent = '';
+        connectedTargetName.textContent = '請從左側選擇設備，並雙擊連線';
+        connectionStatusCard.classList.remove('connected');
+        connectionStatusCard.classList.add('disconnected');
+        connectionStatusCard.disabled = true;
         connectBtn.disabled = false;
-        disconnectBtn.disabled = true;
         sendBtn.disabled = true;
         currentAddress = null;
     }
@@ -311,7 +361,11 @@ function setConnectionState(connected, deviceName = '') {
 async function fetchDevices(silent = false) {
     if (!silent) logMessage(t('log_scanning'), 'info');
     try {
-        const res = await fetch(`${API_BASE}/devices`);
+        const url = new URL(`${API_BASE}/devices`);
+        if (filterAdvHex && filterAdvHex.value) {
+            url.searchParams.append('adv_hex', filterAdvHex.value);
+        }
+        const res = await fetch(url);
         const data = await res.json();
         renderDevices(data.devices);
     } catch (err) {
@@ -354,9 +408,14 @@ function renderDevices(devices) {
     filtered.forEach(d => {
         const li = document.createElement('li');
         li.className = 'device-item';
+        let advHexHtml = '';
+        if (d.adv_hex_strings && d.adv_hex_strings.length > 0) {
+            advHexHtml = ` <span class="device-adv" style="font-size: 0.8em; opacity: 0.7;">[0x16: ${d.adv_hex_strings.join(', ').toUpperCase()}]</span>`;
+        }
+
         li.innerHTML = `
             <span class="device-name">${d.name}</span>
-            <span class="device-address">${d.address}</span>
+            <span class="device-address">${d.address}${advHexHtml}</span>
         `;
         
         if (d.address === currentTarget) {
@@ -420,9 +479,9 @@ connectBtn.addEventListener('click', async () => {
     }
 });
 
-// Disconnect
-disconnectBtn.addEventListener('click', async () => {
-    if (!currentAddress) return;
+// Disconnect (via Card Click)
+connectionStatusCard.addEventListener('click', async () => {
+    if (!currentAddress || !isConnected) return;
     logMessage(t('log_disconnecting'), 'info');
     try {
         await fetch(`${API_BASE}/disconnect`, {
@@ -495,6 +554,7 @@ sendBtn.addEventListener('click', async () => {
         const data = await res.json();
         if (data.status === 'success') {
             logMessage(`${t('log_sent')}: ${processedHexCommand}`);
+            logResponse(`Tx (Write): ${processedHexCommand}`);
         } else {
             throw new Error(data.message);
         }

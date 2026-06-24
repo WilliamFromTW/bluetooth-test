@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional
 LOGS_DIR = "logs"
 os.makedirs(LOGS_DIR, exist_ok=True)
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -38,12 +38,23 @@ active_websockets: list[WebSocket] = []
 # Device scanning background task
 async def scan_devices():
     def detection_callback(device, advertisement_data):
+        adv_hex_strings = []
+        for uuid_str, payload_bytes in advertisement_data.service_data.items():
+            uuid_str = uuid_str.lower()
+            if uuid_str.endswith("-0000-1000-8000-00805f9b34fb"):
+                part = uuid_str[4:8]
+                if len(part) == 4:
+                    le_hex = part[2:4] + part[0:2]
+                    payload_hex = payload_bytes.hex().lower()
+                    adv_hex_strings.append(le_hex + payload_hex)
+
         # Update device info and last seen timestamp
         discovered_devices[device.address] = {
             "name": device.name or "Unknown",
             "address": device.address,
             "rssi": advertisement_data.rssi,
-            "last_seen": time.time()
+            "last_seen": time.time(),
+            "adv_hex_strings": adv_hex_strings
         }
 
     while True:
@@ -70,8 +81,17 @@ async def startup_event():
     asyncio.create_task(scan_devices())
 
 @app.get("/api/devices")
-async def get_devices():
-    return {"devices": list(discovered_devices.values())}
+async def get_devices(adv_hex: Optional[str] = Query(None)):
+    devices = list(discovered_devices.values())
+    if adv_hex:
+        adv_hex = adv_hex.strip().lower()
+        filtered = []
+        for d in devices:
+            strings = d.get("adv_hex_strings", [])
+            if any(adv_hex in s for s in strings):
+                filtered.append(d)
+        return {"devices": filtered}
+    return {"devices": devices}
 
 class ConnectRequest(BaseModel):
     address: str
