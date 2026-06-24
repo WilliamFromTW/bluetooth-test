@@ -51,7 +51,24 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-## 5. 部署與遠端存取 (反向代理設定)
+## 5. 自動化常駐部署 (Linux / Raspberry Pi)
+
+針對產線或物聯網設備，若希望將此測試系統部署為「插電開機即用」的背景服務，我們提供了一鍵安裝腳本。此腳本將會自動安裝相依元件、建立環境，並將伺服器註冊為 `systemd` 服務。
+
+在您的 Linux 或樹莓派設備上，開啟終端機並在專案根目錄下執行：
+
+```bash
+chmod +x deploy/install.sh
+./deploy/install.sh
+```
+
+安裝完成後，伺服器會自動在背景啟動，且支援異常自動重啟與開機自啟。您可以透過以下指令檢查狀態或停止服務：
+```bash
+sudo systemctl status ble-tester.service
+sudo systemctl stop ble-tester.service
+```
+
+## 6. 部署與遠端存取 (反向代理設定)
 
 若希望在同一區域網路內（例如手機或其他電腦）也能開啟測試介面並順利使用藍牙功能，**必須確保前端網頁是透過 `https://` 載入的**（瀏覽器的 Web Bluetooth API 安全限制）。
 
