@@ -68,6 +68,7 @@ let currentAddress = null;
 let ws = null;
 let autoScanInterval = null;
 let processedHexCommand = "";
+let globalDevices = []; // 儲存所有掃描到的設備資料
 
 // Language updates dynamic elements
 window.addEventListener('languageChanged', () => {
@@ -367,7 +368,8 @@ async function fetchDevices(silent = false) {
         }
         const res = await fetch(url);
         const data = await res.json();
-        renderDevices(data.devices);
+        globalDevices = data.devices; // 更新全域設備清單
+        renderDevices(globalDevices);
     } catch (err) {
         if (!silent) logMessage(`${t('log_scan_fail')}: ${err.message}`, 'error');
     }
@@ -495,8 +497,19 @@ connectionStatusCard.addEventListener('click', async () => {
     }
 });
 
-// Character hook logic
-function processCommandHook(inputStr, mode) {
+// =========================================================================
+// 🌟 產線客製化指令處理 Hook 🌟
+// 讓不懂 Python 的同事也可以在這裡修改邏輯
+// 當使用者在「發送指令」輸入框每打一個字，就會觸發這個函數
+// 參數:
+//   - inputStr: 使用者在畫面上輸入的字串
+//   - mode: 目前選擇的寫入模式 ('text' 或 'binary')
+//   - advHexStrings: 該連線設備的 Type 0x16 廣播資料陣列 (例如 ['f0ff35'])
+// =========================================================================
+function processCommandHook(inputStr, mode, advHexStrings = []) {
+    // 您可以在這裡加入客製化邏輯，例如根據 advHexStrings 的值自動改變指令
+    // console.log("目前連線設備的 Type 0x16 資料為:", advHexStrings);
+
     let resultHex = "";
     if (mode === 'text') {
         for (let i = 0; i < inputStr.length; i++) {
@@ -511,7 +524,17 @@ function processCommandHook(inputStr, mode) {
 
 commandInput.addEventListener('input', (e) => {
     const mode = document.querySelector('input[name="writeMode"]:checked').value;
-    const result = processCommandHook(e.target.value, mode);
+    
+    // 找出目前連線設備的 adv_hex_strings
+    let currentAdvHexStrings = [];
+    if (currentAddress) {
+        const dev = globalDevices.find(d => d.address === currentAddress);
+        if (dev && dev.adv_hex_strings) {
+            currentAdvHexStrings = dev.adv_hex_strings;
+        }
+    }
+
+    const result = processCommandHook(e.target.value, mode, currentAdvHexStrings);
     
     if (result.valid) {
         processedHexCommand = result.hex;
