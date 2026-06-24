@@ -63,7 +63,19 @@ const translations = {
         'msg_no_content': '無內容。',
         'msg_error_load_content': '載入內容失敗。',
         'confirm_delete_history': '確定要刪除 {date} 的紀錄嗎？',
-        'alert_delete_failed': '刪除失敗'
+        'alert_delete_failed': '刪除失敗',
+        'text_system_ready': '系統就緒',
+        'text_waiting_response': '等待回應...',
+        'btn_settings': '⚙️ 進階設定',
+        'theme_light': '🌞 亮色',
+        'theme_dark': '🌙 暗色',
+        'theme_toggle_title': '切換深/淺色',
+        'header_settings_scan': '掃描設定',
+        'header_settings_mode': '讀寫模式設定',
+        'header_settings_log': '日誌設定',
+        'label_adv_hex': '廣播資料 (Type 0x16 Hex)',
+        'placeholder_adv_hex': '例如: F0FF35',
+        'msg_select_to_connect': '請從左側選擇設備，並雙擊連線'
     },
     'zh-CN': {
         'title': 'Bluetooth Tester',
@@ -129,7 +141,19 @@ const translations = {
         'msg_no_content': '无内容。',
         'msg_error_load_content': '加载内容失败。',
         'confirm_delete_history': '确定要删除 {date} 的记录吗？',
-        'alert_delete_failed': '删除失败'
+        'alert_delete_failed': '删除失败',
+        'text_system_ready': '系统就绪',
+        'text_waiting_response': '等待响应...',
+        'btn_settings': '⚙️ 高级设置',
+        'theme_light': '🌞 亮色',
+        'theme_dark': '🌙 暗色',
+        'theme_toggle_title': '切换深/浅色',
+        'header_settings_scan': '扫描设置',
+        'header_settings_mode': '读写模式设置',
+        'header_settings_log': '日志设置',
+        'label_adv_hex': '广播数据 (Type 0x16 Hex)',
+        'placeholder_adv_hex': '例如: F0FF35',
+        'msg_select_to_connect': '请从左侧选择设备，并双击连接'
     },
     'en': {
         'title': 'Bluetooth Tester',
@@ -195,7 +219,19 @@ const translations = {
         'msg_no_content': 'No content.',
         'msg_error_load_content': 'Error loading content.',
         'confirm_delete_history': 'Delete records for {date}?',
-        'alert_delete_failed': 'Delete failed'
+        'alert_delete_failed': 'Delete failed',
+        'text_system_ready': 'System Ready',
+        'text_waiting_response': 'Waiting for response...',
+        'btn_settings': '⚙️ Settings',
+        'theme_light': '🌞 Light',
+        'theme_dark': '🌙 Dark',
+        'theme_toggle_title': 'Toggle Theme',
+        'header_settings_scan': 'Scan Settings',
+        'header_settings_mode': 'Read/Write Mode',
+        'header_settings_log': 'Log Settings',
+        'label_adv_hex': 'Adv Data (Type 0x16 Hex)',
+        'placeholder_adv_hex': 'e.g. F0FF35',
+        'msg_select_to_connect': 'Select a device from the left and double click to connect'
     },
     'vi': {
         'title': 'Bluetooth Tester',
@@ -261,7 +297,19 @@ const translations = {
         'msg_no_content': 'Không có nội dung.',
         'msg_error_load_content': 'Lỗi khi tải nội dung.',
         'confirm_delete_history': 'Xóa hồ sơ cho {date}?',
-        'alert_delete_failed': 'Xóa thất bại'
+        'alert_delete_failed': 'Xóa thất bại',
+        'text_system_ready': 'Hệ thống sẵn sàng',
+        'text_waiting_response': 'Đang chờ phản hồi...',
+        'btn_settings': '⚙️ Cài đặt',
+        'theme_light': '🌞 Sáng',
+        'theme_dark': '🌙 Tối',
+        'theme_toggle_title': 'Chuyển đổi giao diện',
+        'header_settings_scan': 'Cài đặt quét',
+        'header_settings_mode': 'Chế độ Đọc/Ghi',
+        'header_settings_log': 'Cài đặt nhật ký',
+        'label_adv_hex': 'Dữ liệu quảng bá (0x16)',
+        'placeholder_adv_hex': 'VD: F0FF35',
+        'msg_select_to_connect': 'Chọn thiết bị từ bên trái và nhấp đúp để kết nối'
     }
 };
 

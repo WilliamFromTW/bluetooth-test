@@ -47,10 +47,16 @@ let currentTheme = localStorage.getItem('ble_theme') || 'dark';
 function applyTheme(theme) {
     if (theme === 'light') {
         document.documentElement.setAttribute('data-theme', 'light');
-        if (themeToggleBtn) themeToggleBtn.textContent = '🌙 暗色';
+        if (themeToggleBtn) {
+            themeToggleBtn.textContent = typeof t === 'function' ? t('theme_dark') : '🌙 暗色';
+            themeToggleBtn.title = typeof t === 'function' ? t('theme_toggle_title') : '切換深/淺色';
+        }
     } else {
         document.documentElement.removeAttribute('data-theme');
-        if (themeToggleBtn) themeToggleBtn.textContent = '🌞 亮色';
+        if (themeToggleBtn) {
+            themeToggleBtn.textContent = typeof t === 'function' ? t('theme_light') : '🌞 亮色';
+            themeToggleBtn.title = typeof t === 'function' ? t('theme_toggle_title') : '切換深/淺色';
+        }
     }
     localStorage.setItem('ble_theme', theme);
     currentTheme = theme;
@@ -78,6 +84,7 @@ window.addEventListener('languageChanged', () => {
         connectionStatusText.textContent = t('status_connected');
     } else {
         connectionStatusText.textContent = t('status_disconnected');
+        if (connectedTargetName) connectedTargetName.textContent = t('msg_select_to_connect');
     }
     if (deviceList.innerHTML.includes('無符合設備') || deviceList.innerHTML.includes('No matching devices') || deviceList.innerHTML.includes('Không có thiết bị phù hợp') || deviceList.innerHTML.includes('无符合设备')) {
         deviceList.innerHTML = `<li class="device-item"><span class="device-address">${t('no_device')}</span></li>`;
@@ -85,6 +92,18 @@ window.addEventListener('languageChanged', () => {
     if (!resultDisplay.classList.contains('ok') && !resultDisplay.classList.contains('ng')) {
         resultDisplay.textContent = '';
     }
+    
+    // Update waiting response if it is in waiting state
+    if (responseDisplay && (responseDisplay.textContent.includes('等待回應...') || responseDisplay.textContent.includes('等待响应...') || responseDisplay.textContent.includes('Waiting for response...') || responseDisplay.textContent.includes('Đang chờ phản hồi...'))) {
+        responseDisplay.textContent = t('text_waiting_response');
+    }
+
+    // Update ticker log if it is in ready state
+    if (tickerLogText && (tickerLogText.textContent === '系統就緒' || tickerLogText.textContent === '系统就绪' || tickerLogText.textContent === 'System Ready' || tickerLogText.textContent === 'Hệ thống sẵn sàng')) {
+        tickerLogText.textContent = t('text_system_ready');
+    }
+
+    applyTheme(currentTheme);
 });
 
 // Global Helper to set huge OK/NG status
@@ -191,7 +210,7 @@ function logMessage(msg, type = '') {
 // Write to Response Data Panel
 function logResponse(msg) {
     if (!responseDisplay) return;
-    if (responseDisplay.textContent.includes('等待回應...')) {
+    if (responseDisplay.textContent.includes('等待回應...') || responseDisplay.textContent.includes('等待响应...') || responseDisplay.textContent.includes('Waiting for response...') || responseDisplay.textContent.includes('Đang chờ phản hồi...')) {
         responseDisplay.textContent = '';
     }
     const div = document.createElement('div');
@@ -346,7 +365,7 @@ function setConnectionState(connected, deviceName = '') {
         connectBtn.disabled = true;
         sendBtn.disabled = false;
         window.setTestResult('');
-        if (responseDisplay) responseDisplay.textContent = '等待回應...';
+        if (responseDisplay) responseDisplay.textContent = t('text_waiting_response');
     } else {
         connectionStatusDot.className = 'dot disconnected';
         connectionStatusText.textContent = t('status_disconnected');
@@ -549,7 +568,7 @@ commandInput.addEventListener('input', (e) => {
 
 if (btnClearLog) {
     btnClearLog.addEventListener('click', () => {
-        if (responseDisplay) responseDisplay.textContent = '等待回應...';
+        if (responseDisplay) responseDisplay.textContent = t('text_waiting_response');
     });
 }
 
