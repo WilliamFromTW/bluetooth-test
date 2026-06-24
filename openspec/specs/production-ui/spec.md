@@ -18,3 +18,10 @@ TBD: Production UI layout and components for streamlined interaction.
 #### Scenario: 日誌更新顯示
 - **WHEN** 系統產生新的日誌或訊息
 - **THEN** 系統必須只在底部狀態列區域顯示該最新訊息，過往訊息需收納至歷史日誌檢視器中
+
+### Requirement: 介面元素完整多語系支援
+系統必須（MUST）支援多國語言（i18n），確保所有介面元素能完整呈現對應的語系文字。
+
+#### Scenario: 切換語系顯示
+- **WHEN** 使用者切換語言設定
+- **THEN** 系統所有的介面元素必須更新為所選擇的語言
