@@ -216,12 +216,13 @@ function logResponse(msg) {
         responseDisplay.textContent = '';
     }
     const div = document.createElement('div');
-    const time = new Date().toLocaleTimeString();
+    const d = new Date();
+    const time = String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0') + String(d.getSeconds()).padStart(2, '0');
     div.textContent = `[${time}] ${msg}`;
     
-    // Add alternating colors or distinct styling for Tx/Rx if needed
-    if (msg.startsWith('Tx')) div.style.color = 'var(--primary-color)';
-    if (msg.startsWith('Rx')) div.style.color = 'var(--success-color)';
+    // Add alternating colors or distinct styling for TX/RX if needed
+    if (msg.startsWith('TX:')) div.style.color = 'var(--primary-color)';
+    if (msg.startsWith('RX:')) div.style.color = 'var(--success-color)';
     
     responseDisplay.appendChild(div);
     responseDisplay.scrollTop = responseDisplay.scrollHeight;
@@ -343,7 +344,7 @@ function setupWebSocket() {
         const data = JSON.parse(event.data);
         if (data.type === 'notify') {
             logMessage(`Notify [${data.uuid}]: ${data.data}`);
-            logResponse(`Rx (Notify): ${data.data}`);
+            logResponse(`RX: ${data.data}`);
         } else if (data.type === 'disconnect') {
             logMessage(t('log_device_disconnected'), 'error');
             setConnectionState(false);
@@ -626,7 +627,7 @@ sendBtn.addEventListener('click', async () => {
         const data = await res.json();
         if (data.status === 'success') {
             logMessage(`${t('log_sent')}: ${processedHexCommand}`);
-            logResponse(`Tx (Write): ${processedHexCommand}`);
+            logResponse(`TX: ${processedHexCommand}`);
         } else {
             throw new Error(data.message);
         }
