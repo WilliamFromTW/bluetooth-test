@@ -450,15 +450,12 @@ function renderDevices(devices) {
         li.addEventListener('click', () => {
             targetAddress.value = d.address;
             targetAddress.dataset.name = d.name; 
-            if (!isConnected) connectBtn.disabled = false;
-            document.querySelectorAll('.device-item').forEach(el => el.style.backgroundColor = '');
-            li.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
-        });
-
-        li.addEventListener('dblclick', () => {
-            targetAddress.value = d.address;
-            targetAddress.dataset.name = d.name;
-            if (!isConnected) connectBtn.click();
+            if (!isConnected) {
+                connectBtn.disabled = false;
+                document.querySelectorAll('.device-item').forEach(el => el.style.backgroundColor = '');
+                li.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
+                connectBtn.click(); // 一鍵連線
+            }
         });
 
         deviceList.appendChild(li);
