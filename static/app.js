@@ -447,36 +447,17 @@ function renderDevices(devices) {
             li.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
         }
 
-        let clickTimeout = null;
-        
         li.addEventListener('click', () => {
-            if (clickTimeout !== null) {
-                clearTimeout(clickTimeout);
-                clickTimeout = null;
-            } else {
-                clickTimeout = setTimeout(() => {
-                    targetAddress.value = d.address;
-                    targetAddress.dataset.name = d.name; 
-                    if (!isConnected) connectBtn.disabled = false;
-                    document.querySelectorAll('.device-item').forEach(el => el.style.backgroundColor = '');
-                    li.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
-                    clickTimeout = null;
-                }, 250); // 延遲 250ms，確認沒有第二次點擊才當作「單擊」
-            }
-        });
+            // 防連點機制：如果正在連線中 (按鈕被鎖定) 或已連線，就忽略這次點擊
+            if (isConnected || connectBtn.disabled) return;
 
-        li.addEventListener('dblclick', () => {
-            clearTimeout(clickTimeout);
-            clickTimeout = null;
-            
             targetAddress.value = d.address;
-            targetAddress.dataset.name = d.name;
-            if (!isConnected) {
-                connectBtn.disabled = false;
-                document.querySelectorAll('.device-item').forEach(el => el.style.backgroundColor = '');
-                li.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
-                connectBtn.click(); // 觸發連線
-            }
+            targetAddress.dataset.name = d.name; 
+            
+            document.querySelectorAll('.device-item').forEach(el => el.style.backgroundColor = '');
+            li.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
+            
+            connectBtn.click(); // 一鍵觸發連線
         });
 
         deviceList.appendChild(li);
