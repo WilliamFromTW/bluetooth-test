@@ -357,6 +357,8 @@ function setupWebSocket() {
 // Set UI Connection State
 function setConnectionState(connected, deviceName = '') {
     isConnected = connected;
+    const deviceListEl = document.getElementById('deviceList');
+    
     if (connected) {
         connectionStatusDot.className = 'dot connected';
         connectionStatusText.textContent = t('status_connected');
@@ -366,18 +368,31 @@ function setConnectionState(connected, deviceName = '') {
         connectionStatusCard.disabled = false;
         connectBtn.disabled = true;
         sendBtn.disabled = false;
+        
+        // 視覺鎖定左側設備清單
+        if (deviceListEl) {
+            deviceListEl.style.pointerEvents = 'none';
+            deviceListEl.style.opacity = '0.5';
+        }
+        
         window.setTestResult('');
         if (responseDisplay) responseDisplay.textContent = t('text_waiting_response');
     } else {
         connectionStatusDot.className = 'dot disconnected';
         connectionStatusText.textContent = t('status_disconnected');
-        connectedTargetName.textContent = '請從左側選擇設備，並雙擊連線';
+        connectedTargetName.textContent = '請從左側選擇設備，並單擊連線';
         connectionStatusCard.classList.remove('connected');
         connectionStatusCard.classList.add('disconnected');
         connectionStatusCard.disabled = true;
         connectBtn.disabled = false;
         sendBtn.disabled = true;
         currentAddress = null;
+        
+        // 解除鎖定左側設備清單
+        if (deviceListEl) {
+            deviceListEl.style.pointerEvents = 'auto';
+            deviceListEl.style.opacity = '1';
+        }
     }
 }
 
