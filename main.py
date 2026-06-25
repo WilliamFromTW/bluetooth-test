@@ -34,6 +34,9 @@ async def root():
 discovered_devices: Dict[str, Dict[str, Any]] = {}
 active_clients: Dict[str, BleakClient] = {}
 active_websockets: list[WebSocket] = []
+scan_enabled = True
+scanner_is_running = False
+global_scanner: Optional[BleakScanner] = None
 
 # Device scanning background task
 async def scan_devices():
@@ -57,23 +60,32 @@ async def scan_devices():
             "adv_hex_strings": adv_hex_strings
         }
 
+    global global_scanner, scan_enabled, scanner_is_running
+    global_scanner = BleakScanner(detection_callback)
+
     while True:
         try:
-            scanner = BleakScanner(detection_callback)
-            await scanner.start()
-            print("Bluetooth scanner started successfully.")
-            while True:
-                await asyncio.sleep(1)
-                current_time = time.time()
-                # Remove devices not seen in the last 10 seconds
-                stale_addresses = [
-                    addr for addr, data in discovered_devices.items()
-                    if current_time - data["last_seen"] > 10
-                ]
-                for addr in stale_addresses:
-                    del discovered_devices[addr]
+            if scan_enabled and not scanner_is_running:
+                await global_scanner.start()
+                scanner_is_running = True
+                print("Bluetooth scanner started successfully.")
+            elif not scan_enabled and scanner_is_running:
+                await global_scanner.stop()
+                scanner_is_running = False
+                print("Bluetooth scanner stopped to free resources.")
+
+            await asyncio.sleep(1)
+            current_time = time.time()
+            # Remove devices not seen in the last 10 seconds
+            stale_addresses = [
+                addr for addr, data in discovered_devices.items()
+                if current_time - data["last_seen"] > 10
+            ]
+            for addr in stale_addresses:
+                del discovered_devices[addr]
         except Exception as e:
             print(f"Scanner error: {e}. Retrying in 5 seconds...")
+            scanner_is_running = False
             await asyncio.sleep(5)
 
 @app.on_event("startup")
@@ -111,10 +123,15 @@ async def notify_callback(address: str, uuid: str, data: bytearray):
         await ws.send_json(message)
 
 def disconnect_callback(client: BleakClient):
+    global scan_enabled
     # This callback is triggered when device physically disconnects
     address = client.address
     if address in active_clients:
         del active_clients[address]
+        
+    if not active_clients:
+        scan_enabled = True
+
     # Notify frontend about disconnection
     message = {
         "type": "disconnect",
@@ -128,6 +145,19 @@ async def connect_device(req: ConnectRequest):
     if req.address in active_clients and active_clients[req.address].is_connected:
         return {"status": "error", "message": "Already connected"}
     
+    global scan_enabled, scanner_is_running
+    scan_enabled = False
+    
+    # 確實等待背景任務停止 scan (最多等待 5 秒)
+    retry = 0
+    while scanner_is_running and retry < 50:
+        await asyncio.sleep(0.1)
+        retry += 1
+        
+    if scanner_is_running:
+        scan_enabled = True
+        return {"status": "error", "message": "Failed to stop Bluetooth scanner. Please try again."}
+
     client = BleakClient(req.address, disconnected_callback=disconnect_callback)
     try:
         await client.connect()
@@ -137,6 +167,7 @@ async def connect_device(req: ConnectRequest):
             service = client.services.get_service(req.service_uuid)
             if not service:
                 await client.disconnect()
+                scan_enabled = True
                 return {"status": "error", "message": f"Service UUID {req.service_uuid} not found"}
 
         active_clients[req.address] = client
@@ -150,13 +181,16 @@ async def connect_device(req: ConnectRequest):
 
         return {"status": "success"}
     except Exception as e:
+        scan_enabled = True
         return {"status": "error", "message": str(e)}
 
 @app.post("/api/disconnect")
 async def disconnect_device(req: ConnectRequest):
+    global scan_enabled
     if req.address in active_clients:
         await active_clients[req.address].disconnect()
         # Deletion from active_clients will happen in disconnect_callback
+    scan_enabled = True
     return {"status": "success"}
 
 class WriteRequest(BaseModel):
