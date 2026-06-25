@@ -29,7 +29,10 @@
             <!-- 左欄：過濾與設備清單 -->
             <section class="panel left-panel" style="width: 35%; max-width: 450px;">
                 <div class="card flex-grow" style="display: flex; flex-direction: column; height: 100%;">
-                    <h2 data-i18n="header_scan">過濾與掃描</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 15px;">
+                        <h2 data-i18n="header_scan" style="border-bottom: none; padding-bottom: 0; margin: 0;">過濾與掃描</h2>
+                        <button id="scanBtn" class="btn primary small" style="padding: 5px 10px; font-size: 0.9rem;" data-i18n="btn_scan">更新清單</button>
+                    </div>
                     <div class="input-group">
                         <label for="filterInput" data-i18n="label_filter">過濾條件 (Name 或 Address/UUID)</label>
                         <input type="text" id="filterInput" data-i18n-placeholder="placeholder_filter" placeholder="例如: MyDevice 或 38A8D5F6...">
@@ -41,10 +44,8 @@
                     <!-- 原本 targetAddress input 改為 hidden，產線畫面直接顯示在狀態卡片上 -->
                     <input type="hidden" id="targetAddress">
                     
-                    <div class="action-buttons" style="align-items: center; justify-content: space-between; margin-top: 10px;">
-                        <button id="scanBtn" class="btn primary" style="flex: 1; height: 50px; font-size: 1.2rem;" data-i18n="btn_scan">更新清單</button>
-                        <button id="connectBtn" class="btn success" style="flex: 1; height: 50px; font-size: 1.2rem; display: none;" data-i18n="btn_connect">連線</button>
-                    </div>
+                    <!-- 保留原本的 connectBtn 給 JS 觸發，但完全隱藏不佔空間 -->
+                    <button id="connectBtn" style="display: none;"></button>
                     
                     <ul id="deviceList" class="device-list"></ul>
                 </div>
@@ -64,11 +65,11 @@
                 <button id="disconnectBtn" style="display: none;"></button>
 
                 <!-- 發送指令 -->
-                <div class="card">
-                    <h2 data-i18n="header_send_cmd">發送指令</h2>
+                <div class="card" style="padding: 12px 20px; gap: 10px;">
+                    <h2 data-i18n="header_send_cmd" style="font-size: 1rem; padding-bottom: 4px;">發送指令</h2>
                     <div style="display: flex; gap: 15px; align-items: stretch;">
-                        <input type="text" id="commandInput" data-i18n-placeholder="placeholder_cmd" placeholder="請刷入條碼或輸入指令" style="flex: 1;">
-                        <button id="sendBtn" class="btn primary" data-i18n="btn_send" disabled>發送</button>
+                        <input type="text" id="commandInput" data-i18n-placeholder="placeholder_cmd" placeholder="請刷入條碼或輸入指令" style="flex: 1; padding: 6px 12px; font-size: 0.9rem;">
+                        <button id="sendBtn" class="btn primary small" style="padding: 6px 15px; font-size: 0.9rem;" data-i18n="btn_send" disabled>發送</button>
                     </div>
                 </div>
 
@@ -83,10 +84,10 @@
                     </div>
                     <div style="display: flex; gap: 15px; flex: 1; min-height: 0;">
                         <!-- 左邊：指令動作回應資料 -->
-                        <div id="responseDisplay" class="response-display" data-i18n="text_waiting_response">等待回應...</div>
+                        <div id="responseDisplay" class="response-display" style="flex: 1 1 50%; max-width: 50%; box-sizing: border-box;" data-i18n="text_waiting_response">等待回應...</div>
                         
                         <!-- 右邊：大字型 OK/NG -->
-                        <div id="resultDisplay" class="result-display" style="margin-top: 0; flex: 1;"></div>
+                        <div id="resultDisplay" class="result-display" style="flex: 1 1 50%; max-width: 50%; box-sizing: border-box; margin-top: 0;"></div>
                     </div>
                 </div>
             </section>
