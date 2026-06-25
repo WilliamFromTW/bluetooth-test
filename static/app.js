@@ -210,7 +210,7 @@ function logMessage(msg, type = '') {
 }
 
 // Write to Response Data Panel
-function logResponse(msg) {
+function logResponse(msg, type = 'rx') {
     if (!responseDisplay) return;
     if (responseDisplay.textContent.includes('等待回應...') || responseDisplay.textContent.includes('等待响应...') || responseDisplay.textContent.includes('Waiting for response...') || responseDisplay.textContent.includes('Đang chờ phản hồi...')) {
         responseDisplay.textContent = '';
@@ -220,9 +220,9 @@ function logResponse(msg) {
     const time = String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0') + String(d.getSeconds()).padStart(2, '0');
     div.textContent = `[${time}] ${msg}`;
     
-    // Add alternating colors or distinct styling for TX/RX if needed
-    if (msg.startsWith('TX:')) div.style.color = 'var(--primary-color)';
-    if (msg.startsWith('RX:')) div.style.color = 'var(--success-color)';
+    // Use distinct styling for tx/rx
+    if (type === 'tx') div.style.color = 'var(--primary-color)';
+    if (type === 'rx') div.style.color = 'var(--success-color)';
     
     responseDisplay.appendChild(div);
     responseDisplay.scrollTop = responseDisplay.scrollHeight;
@@ -344,7 +344,7 @@ function setupWebSocket() {
         const data = JSON.parse(event.data);
         if (data.type === 'notify') {
             logMessage(`Notify [${data.uuid}]: ${data.data}`);
-            logResponse(`RX: ${data.data}`);
+            logResponse(data.data, 'rx');
         } else if (data.type === 'disconnect') {
             logMessage(t('log_device_disconnected'), 'error');
             setConnectionState(false);
@@ -627,7 +627,7 @@ sendBtn.addEventListener('click', async () => {
         const data = await res.json();
         if (data.status === 'success') {
             logMessage(`${t('log_sent')}: ${processedHexCommand}`);
-            logResponse(`TX: ${processedHexCommand}`);
+            logResponse(processedHexCommand, 'tx');
         } else {
             throw new Error(data.message);
         }
