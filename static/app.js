@@ -447,14 +447,35 @@ function renderDevices(devices) {
             li.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
         }
 
+        let clickTimeout = null;
+        
         li.addEventListener('click', () => {
+            if (clickTimeout !== null) {
+                clearTimeout(clickTimeout);
+                clickTimeout = null;
+            } else {
+                clickTimeout = setTimeout(() => {
+                    targetAddress.value = d.address;
+                    targetAddress.dataset.name = d.name; 
+                    if (!isConnected) connectBtn.disabled = false;
+                    document.querySelectorAll('.device-item').forEach(el => el.style.backgroundColor = '');
+                    li.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
+                    clickTimeout = null;
+                }, 250); // 延遲 250ms，確認沒有第二次點擊才當作「單擊」
+            }
+        });
+
+        li.addEventListener('dblclick', () => {
+            clearTimeout(clickTimeout);
+            clickTimeout = null;
+            
             targetAddress.value = d.address;
-            targetAddress.dataset.name = d.name; 
+            targetAddress.dataset.name = d.name;
             if (!isConnected) {
                 connectBtn.disabled = false;
                 document.querySelectorAll('.device-item').forEach(el => el.style.backgroundColor = '');
                 li.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
-                connectBtn.click(); // 一鍵連線
+                connectBtn.click(); // 觸發連線
             }
         });
 
