@@ -37,10 +37,6 @@
                         <label for="filterInput" data-i18n="label_filter">過濾條件 (Name 或 Address/UUID)</label>
                         <input type="text" id="filterInput" data-i18n-placeholder="placeholder_filter" placeholder="例如: MyDevice 或 38A8D5F6...">
                     </div>
-                    <div class="input-group" style="margin-top: 10px;">
-                        <label for="filterAdvHex" data-i18n="label_adv_hex">廣播資料 (Type 0x16 Hex)</label>
-                        <input type="text" id="filterAdvHex" data-i18n-placeholder="placeholder_adv_hex" placeholder="例如: F0FF35">
-                    </div>
                     <!-- 原本 targetAddress input 改為 hidden，產線畫面直接顯示在狀態卡片上 -->
                     <input type="hidden" id="targetAddress">
                     
@@ -115,6 +111,10 @@
                         <div class="checkbox-group" style="margin-top: 10px;">
                             <input type="checkbox" id="autoScanCheck">
                             <label for="autoScanCheck" data-i18n="label_auto_scan">自動掃描</label>
+                        </div>
+                        <div class="input-group" style="margin-top: 15px;">
+                            <label for="filterAdvHex" data-i18n="label_adv_hex">廣播資料 (Type 0x16 Hex) 過濾</label>
+                            <input type="text" id="filterAdvHex" data-i18n-placeholder="placeholder_adv_hex" placeholder="例如: F0FF35">
                         </div>
                     </div>
                     
